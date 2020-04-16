@@ -36,6 +36,7 @@ using System.Web.Security;
 using Microsoft.ReportingServices.Interfaces;
 using Microsoft.Samples.ReportingServices.CustomSecurity.App_LocalResources;
 using System.Globalization;
+using System.Configuration;
 
 namespace Microsoft.Samples.ReportingServices.CustomSecurity
 {
@@ -67,6 +68,7 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
          this.BtnLogon.Click += new System.EventHandler(this.ServerBtnLogon_Click);
          this.BtnRegister.Click += new System.EventHandler(this.BtnRegister_Click);
          this.Load += new System.EventHandler(this.Page_Load);
+        lblMessage.Text = ConfigurationManager.AppSettings["AllowedOrigins"];
 
       }
       #endregion

@@ -31,6 +31,7 @@ using System.Management;
 using System.Xml;
 using System.Text;
 using System.Globalization;
+using System.Configuration;
 
 namespace Microsoft.Samples.ReportingServices.CustomSecurity
 {
@@ -77,7 +78,7 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
       {
          // See "How To Use DPAPI (Machine Store) from ASP.NET" for 
          // information about securely storing connection strings.
-            using (SqlConnection conn= new SqlConnection(Properties.Settings.Default.Database_ConnectionString))
+            using (SqlConnection conn= new SqlConnection(ConfigurationManager.AppSettings["Database_ConnectionString"]))
             {
             SqlCommand cmd = new SqlCommand("RegisterUser", conn);
             cmd.CommandType = CommandType.StoredProcedure;
@@ -120,7 +121,7 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
          // Use DPAPI (User Store) from Enterprise Services," and "How To:
          // Create a DPAPI Library" on MSDN for more information about 
          // how to use DPAPI to securely store connection strings.
-         using (SqlConnection conn = new SqlConnection(Properties.Settings.Default.Database_ConnectionString))
+         using (SqlConnection conn = new SqlConnection(ConfigurationManager.AppSettings["Database_ConnectionString"]))
           {
             SqlCommand cmd = new SqlCommand("LookupUser", conn);
             cmd.CommandType = CommandType.StoredProcedure;

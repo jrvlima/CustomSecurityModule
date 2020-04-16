@@ -29,6 +29,8 @@ using System.Web;
 using Microsoft.ReportingServices.Interfaces;
 using System.Globalization;
 using System.Xml;
+using System.Linq;
+using System.Configuration;
 
 namespace Microsoft.Samples.ReportingServices.CustomSecurity
 {
@@ -92,16 +94,32 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
         //original method that was added in the code.
         public void GetUserInfo(out IIdentity userIdentity, out IntPtr userId)
         {
-            userIdentity = new GenericIdentity("admin");
 
+            if (HttpContext.Current != null
+                  && HttpContext.Current.User != null)
+            {
+                userIdentity = HttpContext.Current.User.Identity;
+            }
+            else
+            {
+                userIdentity = new GenericIdentity(ConfigurationManager.AppSettings["AnonymousUser"]);
+            }
             userId = IntPtr.Zero;
         }
 
         //adding new GetUserInfo method for IAuthenticationExtension2
         public void GetUserInfo(IRSRequestContext requestContext, out IIdentity userIdentity, out IntPtr userId)
         {
-            userIdentity = new GenericIdentity("admin");
+            userIdentity = null;
             
+            if (requestContext.Headers.ContainsKey("Referer") &&
+               ConfigurationManager.AppSettings["AllowedOrigins"].Split(',').ToList().Contains(new Uri(requestContext.Headers["Referer"][0]).Host))
+            {
+                userIdentity = new GenericIdentity("admin");
+            } else if (requestContext.User != null)
+            {
+                userIdentity = requestContext.User;
+            }
             userId = IntPtr.Zero;
         }
 
@@ -125,7 +143,7 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
         public static bool VerifyUser(string userName)
         {
             bool isValid = false;
-            using (SqlConnection conn = new SqlConnection(Properties.Settings.Default.Database_ConnectionString))
+            using (SqlConnection conn = new SqlConnection(ConfigurationManager.AppSettings["Database_ConnectionString"]))
             {
                 SqlCommand cmd = new SqlCommand("LookupUser", conn);
                 cmd.CommandType = CommandType.StoredProcedure;

@@ -20,6 +20,8 @@
             Width="96px" Font-Size="X-Small" Font-Names="Verdana" Font-Bold="True" meta:resourcekey="LblPwdResource1">Password:</asp:Label>&nbsp;
          <asp:TextBox id="TxtUser" style="Z-INDEX: 104; LEFT: 296px; POSITION: absolute; TOP: 152px" runat="server"
             tabIndex="1" Width="160px" meta:resourcekey="TxtUserResource1"></asp:TextBox>
+         <asp:Button id="BtnRegister" style="Z-INDEX: 105; LEFT: 232px; POSITION: absolute; TOP: 224px"
+            runat="server" Width="104px" Text="Register User" tabIndex="4" meta:resourcekey="BtnRegisterResource1"></asp:Button>
          <asp:Label id="lblMessage" style="Z-INDEX: 107; LEFT: 168px; POSITION: absolute; TOP: 272px"
             runat="server" Width="321px" meta:resourcekey="lblMessageResource1"></asp:Label>
          <asp:Label id="Label1" style="Z-INDEX: 108; LEFT: 120px; POSITION: absolute; TOP: 96px" runat="server"

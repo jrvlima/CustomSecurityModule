@@ -31,12 +31,14 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.ReportingServices.Interfaces;
 using System.Xml;
+using System.Configuration;
 
 namespace Microsoft.Samples.ReportingServices.CustomSecurity
 {
    public class Authorization: IAuthorizationExtension
    {
-      private static string m_adminUserName;
+      private static string m_reportViewerUserName;
+
       static Authorization()
       {
          InitializeMaps();
@@ -78,14 +80,9 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
 		byte[] secDesc,
 		ModelItemOperation modelItemOperation)
 	  {
-      // If the user is the administrator, allow unrestricted access.
-      // Because SQL Server defaults to case-insensitive, we have to
-      // perform a case insensitive comparison. Ideally you would check
-      // the SQL Server instance CaseSensitivity property before making
-      // a case-insensitive comparison.
-      if (0 == String.Compare(userName, m_adminUserName, true,
-            CultureInfo.CurrentCulture))
-        return true;
+        // If the user is not report viewer username, allow unrestricted access.
+        if (!userName.Equals(m_reportViewerUserName))
+            return true;
 
       AceCollection acl = DeserializeAcl(secDesc);
       foreach (AceStruct ace in acl)
@@ -115,14 +112,9 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
 	   byte[] secDesc,
 	   ModelOperation modelOperation)
 	  {
-      // If the user is the administrator, allow unrestricted access.
-      // Because SQL Server defaults to case-insensitive, we have to
-      // perform a case insensitive comparison. Ideally you would check
-      // the SQL Server instance CaseSensitivity property before making
-      // a case-insensitive comparison.
-      if (0 == String.Compare(userName, m_adminUserName, true,
-            CultureInfo.CurrentCulture))
-        return true;
+        // If the user is not report viewer username, allow unrestricted access.
+        if (!userName.Equals(m_reportViewerUserName))
+            return true;
 
       AceCollection acl = DeserializeAcl(secDesc);
       foreach (AceStruct ace in acl)
@@ -165,14 +157,9 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
          byte[] secDesc, 
          CatalogOperation requiredOperation)
       {
-         // If the user is the administrator, allow unrestricted access.
-         // Because SQL Server defaults to case-insensitive, we have to
-         // perform a case insensitive comparison. Ideally you would check
-         // the SQL Server instance CaseSensitivity property before making
-         // a case-insensitive comparison.
-         if (0 == String.Compare(userName, m_adminUserName, true, 
-               CultureInfo.CurrentCulture))
-            return true;
+            // If the user is not report viewer username, allow unrestricted access.
+            if (!userName.Equals(m_reportViewerUserName))
+                return true;
 
          AceCollection acl = DeserializeAcl(secDesc);
          foreach(AceStruct ace in acl)
@@ -218,10 +205,9 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
          byte[] secDesc, 
          ReportOperation requiredOperation)
       {
-         // If the user is the administrator, allow unrestricted access.
-         if (0 == String.Compare(userName, m_adminUserName, true, 
-               CultureInfo.CurrentCulture))
-            return true;
+            // If the user is not report viewer username, allow unrestricted access.
+            if (!userName.Equals(m_reportViewerUserName))
+                return true;
          
          AceCollection acl = DeserializeAcl(secDesc);
          foreach(AceStruct ace in acl)
@@ -247,10 +233,9 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
          byte[] secDesc, 
          FolderOperation requiredOperation)
       {
-         // If the user is the administrator, allow unrestricted access.
-         if (0 == String.Compare(userName, m_adminUserName, true, 
-               CultureInfo.CurrentCulture))
-            return true;
+            // If the user is not report viewer username, allow unrestricted access.
+            if (!userName.Equals(m_reportViewerUserName))
+                return true;
          
          AceCollection acl = DeserializeAcl(secDesc);
          foreach(AceStruct ace in acl)
@@ -292,10 +277,9 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
          byte[] secDesc, 
          ResourceOperation requiredOperation)
       {
-         // If the user is the administrator, allow unrestricted access.
-         if (0 == String.Compare(userName, m_adminUserName, true, 
-               CultureInfo.CurrentCulture))
-            return true;
+            // If the user is not report viewer username, allow unrestricted access.
+            if (!userName.Equals(m_reportViewerUserName))
+                return true;
             
          AceCollection acl = DeserializeAcl(secDesc);
          foreach(AceStruct ace in acl)
@@ -322,9 +306,8 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
          byte[] secDesc, 
          ResourceOperation[] requiredOperations)
       {
-         // If the user is the administrator, allow unrestricted access.
-         if (0 == String.Compare(userName, m_adminUserName, true, 
-               CultureInfo.CurrentCulture))
+        // If the user is not report viewer username, allow unrestricted access.
+        if (!userName.Equals(m_reportViewerUserName))
             return true;
    
          foreach(ResourceOperation operation in requiredOperations)
@@ -342,9 +325,8 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
          byte[] secDesc, 
          DatasourceOperation requiredOperation)
       {
-         // If the user is the administrator, allow unrestricted access.
-         if (0 == String.Compare(userName, m_adminUserName, true, 
-               CultureInfo.CurrentCulture))
+         // If the user is not report viewer username, allow unrestricted access.
+         if (!userName.Equals(m_reportViewerUserName))
             return true;
 
          AceCollection acl = DeserializeAcl(secDesc);
@@ -387,6 +369,9 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
          if (IsAdmin(userName))
          {
              permissions.AddRange(_fullPermissions.ToArray());
+         } else if (IsReportViewer(userName))
+         {
+             //permissions.AddRange(_fullPermissions.ToArray());
          }
          else
          {
@@ -662,7 +647,7 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
                return false;
            }
 
-           if (userName.Equals(m_adminUserName, StringComparison.OrdinalIgnoreCase))
+           if (!userName.Equals(m_reportViewerUserName))
            {
                return true;
            }
@@ -670,17 +655,32 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
            return false;
        }
 
-      /// <summary>
-      /// You must implement SetConfiguration as required by IExtension
-      /// </summary>
-      /// <param name="configuration">Configuration data as an XML
-      /// string that is stored along with the Extension element in
-      /// the configuration file.</param>
-       [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes")]
+       private bool IsReportViewer(string userName)
+       {
+           if (string.IsNullOrEmpty(userName))
+           {
+               return false;
+           }
+
+           if (userName.Equals(m_reportViewerUserName))
+           {
+               return true;
+           }
+
+           return false;
+       }
+
+        /// <summary>
+        /// You must implement SetConfiguration as required by IExtension
+        /// </summary>
+        /// <param name="configuration">Configuration data as an XML
+        /// string that is stored along with the Extension element in
+        /// the configuration file.</param>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes")]
       public void SetConfiguration(string configuration)
       {
-         // Retrieve admin user and password from the config settings
-         // and verify
+            // Retrieve admin user and password from the config settings
+            // and verify
          XmlDocument doc = new XmlDocument();
          doc.LoadXml(configuration);
          if (doc.DocumentElement.Name == "AdminConfiguration")
@@ -689,7 +689,7 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
             {
                if(child.Name == "UserName")
                {
-                  m_adminUserName = child.InnerText;
+                    m_reportViewerUserName = child.InnerText;
                }
                else
                {

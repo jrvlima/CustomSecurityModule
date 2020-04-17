@@ -21,16 +21,12 @@
 ===========================================================================*/
 #endregion
 
+using Microsoft.ReportingServices.Interfaces;
 using System;
-using System.Data;
-using System.Data.SqlClient;
+using System.DirectoryServices.AccountManagement;
 using System.Security.Principal;
 using System.Web;
-using Microsoft.ReportingServices.Interfaces;
-using System.Globalization;
 using System.Xml;
-using System.Linq;
-using System.Configuration;
 
 namespace Microsoft.Samples.ReportingServices.CustomSecurity
 {
@@ -77,7 +73,13 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         public bool LogonUser(string userName, string password, string authority)
         {
-            return AuthenticationUtilities.VerifyPassword(userName, password);
+            bool isValid = false;
+            using (PrincipalContext context = new PrincipalContext(ContextType.Machine))
+            {
+                isValid = context.ValidateCredentials(userName, password);
+            }
+
+            return isValid;
         }
 
         /// <summary>
@@ -95,15 +97,24 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
         public void GetUserInfo(out IIdentity userIdentity, out IntPtr userId)
         {
 
+            // If the current user identity is not null,
+            // set the userIdentity parameter to that of the current user 
             if (HttpContext.Current != null
                   && HttpContext.Current.User != null)
             {
                 userIdentity = HttpContext.Current.User.Identity;
             }
             else
+            // The current user identity is null. This happens when the user attempts an anonymous logon.
+            // Although it is ok to return userIdentity as a null reference, it is best to throw an appropriate
+            // exception for debugging purposes.
+            // To configure for anonymous logon, return a Gener
             {
-                userIdentity = new GenericIdentity(ConfigurationManager.AppSettings["AnonymousUser"]);
+                //System.Diagnostics.Debug.Assert(false, "Warning: userIdentity is null! Modify your code if you wish to support anonymous logon.");
+                throw new NullReferenceException("Anonymous logon is not configured. userIdentity should not be null!");
             }
+
+            // initialize a pointer to the current user id to zero
             userId = IntPtr.Zero;
         }
 
@@ -112,66 +123,16 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity
         {
             userIdentity = null;
             
-            if (requestContext.Headers.ContainsKey("Referer") &&
-               ConfigurationManager.AppSettings["AllowedOrigins"].Split(',').ToList().Contains(new Uri(requestContext.Headers["Referer"][0]).Host))
-            {
-                userIdentity = new GenericIdentity("admin");
-            } else if (requestContext.User != null)
+            if (requestContext.User != null)
             {
                 userIdentity = requestContext.User;
             }
             userId = IntPtr.Zero;
         }
 
-        /// <summary>
-        /// The IsValidPrincipalName method is called by the report server when 
-        /// the report server sets security on an item. This method validates 
-        /// that the user name is valid for Windows.The principal name needs to 
-        /// be a user, group, or builtin account name.
-        /// </summary>
-        /// <param name="principalName">A user, group, or built-in account name
-        /// </param>
-        /// <returns>true when the principle name is valid</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Security", "CA2123:OverrideLinkDemandsShouldBeIdenticalToBase")]
         public bool IsValidPrincipalName(string principalName)
         {
-            return VerifyUser(principalName);
-        }
-
-        // 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Reliability", "CA2000:DisposeObjectsBeforeLosingScope")]
-        public static bool VerifyUser(string userName)
-        {
-            bool isValid = false;
-            using (SqlConnection conn = new SqlConnection(ConfigurationManager.AppSettings["Database_ConnectionString"]))
-            {
-                SqlCommand cmd = new SqlCommand("LookupUser", conn);
-                cmd.CommandType = CommandType.StoredProcedure;
-
-                SqlParameter sqlParam = cmd.Parameters.Add("@userName",
-                    SqlDbType.VarChar,
-                    255);
-                sqlParam.Value = userName;
-                try
-                {
-                    conn.Open();
-                    using (SqlDataReader reader = cmd.ExecuteReader())
-                    {
-                        // If a row exists for the user, then the user is valid.
-                        if (reader.Read())
-                        {
-                            isValid = true;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(string.Format(CultureInfo.InvariantCulture,
-                    CustomSecurity.VerifyError + ex.Message));
-                }
-            }
-
-            return isValid;
+            return true;
         }
     }
 }

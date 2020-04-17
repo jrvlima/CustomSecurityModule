@@ -70,15 +70,6 @@ namespace Microsoft.Samples.ReportingServices.CustomSecurity.App_LocalResources 
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Register User.
-        /// </summary>
-        internal static string BtnRegisterResource1 {
-            get {
-                return ResourceManager.GetString("BtnRegisterResource1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Invalid username or password.
         /// </summary>
         internal static string InvalidUsernamePassword {

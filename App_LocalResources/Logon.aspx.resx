@@ -117,9 +117,6 @@
   <data name="BtnLogonResource1">
     <value xml:space="preserve">Logon</value>
   </data>
-  <data name="BtnRegisterResource1">
-    <value xml:space="preserve">Register User</value>
-  </data>
   <data name="InvalidUsernamePassword">
     <value xml:space="preserve">Invalid username or password</value>
   </data>

@@ -95,14 +95,14 @@ Modify files in the ReportServer Folder
 	</Authentication>
 	```
 
--	Locate the ```<Security>``` and ```<Authentication>``` elements, within the ```<Extensions>``` element, and modify the settings as follows: 
+-	Locate the ```<Security>``` and ```<Authentication>``` elements, within the ```<Extensions>``` element, and modify the settings as follows: (username value specified in the tags is the readonlyusername)
 
 	```xml
 	<Security>
 		<Extension Name="Forms" Type="Microsoft.Samples.ReportingServices.CustomSecurity.Authorization, Microsoft.Samples.ReportingServices.CustomSecurity" >
 		<Configuration>
 			<AdminConfiguration>
-				<UserName>username</UserName>
+				<UserName>PlaceholderForReadOnlyUsername</UserName>
 			</AdminConfiguration>
 		</Configuration>
 		</Extension>

@@ -28,7 +28,7 @@ $extension = $rsConfigFile.CreateElement("Extension")
 $extension.SetAttribute("Name","Forms")
 $extension.SetAttribute("Type","Microsoft.Samples.ReportingServices.CustomSecurity.Authorization, Microsoft.Samples.ReportingServices.CustomSecurity")
 $configuration =$rsConfigFile.CreateElement("Configuration")
-$configuration.InnerXml="<AdminConfiguration>`n<UserName>username</UserName>`n</AdminConfiguration>"
+$configuration.InnerXml="<AdminConfiguration>`n<UserName>testuser</UserName>`n</AdminConfiguration>"
 $extension.AppendChild($configuration)
 $rsConfigFile.Configuration.Extensions.Security.AppendChild($extension)
 $rsConfigFile.Configuration.Extensions.Authentication.Extension.Name ="Forms"
